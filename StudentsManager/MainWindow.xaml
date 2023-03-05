@@ -1,0 +1,236 @@
+﻿<Window x:Class="StudentsManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StudentsManager"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="700" Width="1000" Loaded="Window_Loaded">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <GroupBox Header="Студенты">
+            <ScrollViewer>
+                <StackPanel>
+                    <DataGrid                    
+            x:Name="studentsDataGrid"
+            Margin="10"
+            MouseDoubleClick="studentsDataGrid_MouseDoubleClick"
+            CanUserAddRows="False"
+            AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding Name}" 
+                                    Header="Имя"/>
+                            <DataGridTextColumn Binding="{Binding Birthday}" 
+                                    Header="День рожденья"/>
+                            <DataGridTextColumn Binding="{Binding Email}" 
+                                    Header="E-mail"/>
+                            <DataGridTextColumn Binding="{Binding VisitsCount}" 
+                                    Header="Кол-во посещений"
+                                    IsReadOnly="True"/>
+                            <DataGridTextColumn Binding="{Binding Group}" 
+                                    Header="Группа"
+                                    IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </ScrollViewer>
+        </GroupBox>
+        <WrapPanel Grid.Row="1" Grid.Column="0" 
+                   HorizontalAlignment="Center" >
+            <TextBlock Text="Имя:"/>
+            <TextBox x:Name="studentNameTextBox"
+                     Width="170" 
+                     Margin="5,3"/>
+            <TextBlock Text="Дата рождения:"/>
+            <DatePicker x:Name="studentBirthdayDatePicker" 
+                        Width="170" 
+                        Margin="5,3"/>
+            <TextBlock Text="E-mail:"/>
+            <TextBox x:Name="studentEmailTextBox" 
+                     Margin="5,3" 
+                     Width="170"/>
+            <TextBlock Text="Группа:"/>
+            <ComboBox x:Name="studentGroupComboBox"
+                      SelectedIndex="0" 
+                      Margin="5,5"/>
+            <Button Content="Создать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Add_NewStudent_Button_Click"/>
+            <Button Content="Удалить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Delete_Student_Button_Click"/>
+            <Button Content="Редактировать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Update_Student_Button_Click"/>
+            <Button Content="Сохранить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Save_Student_Button_Click"/>
+        </WrapPanel>
+
+        <GroupBox Header="Посещения" Grid.Row="2" Grid.Column="0">
+            <ScrollViewer>
+                <StackPanel>
+                    <DataGrid 
+            x:Name="visitsDataGrid"
+            Margin="10"
+            CanUserAddRows="False"
+            AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding Date}" 
+                                    Header="Дата"/>
+                            <DataGridTextColumn Binding="{Binding Student}" 
+                                    Header="Студент"
+                                    IsReadOnly="True"/>
+                            <DataGridTextColumn Binding="{Binding Subject}" 
+                                    Header="Предмет"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </ScrollViewer>
+        </GroupBox>
+        <WrapPanel Grid.Row="3" Grid.Column="0" 
+                   HorizontalAlignment="Center" >
+            <TextBlock Text="Дата посещения:"/>
+            <DatePicker x:Name="visitDatePicker" 
+                        Width="170" 
+                        Margin="5,3"/>
+            <TextBlock Text="Предмет:"/>
+            <ComboBox x:Name="subjectsComboBox" 
+                      SelectedIndex="0" 
+                      Margin="5,5"/>
+            <Button Content="Создать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Add_NewVisit_Button_Click"/>
+            <Button Content="Удалить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Delete_Visit_Button_Click"/>
+            <Button Content="Редактировать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Update_Visit_Button_Click"/>
+            <Button Content="Сохранить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Save_Visit_Button_Click"/>
+        </WrapPanel>
+
+        <GroupBox Grid.Row="0" Grid.Column="1" Header="Группы">
+            <ScrollViewer>
+                <StackPanel>
+                    <DataGrid 
+            x:Name="groupsDataGrid"
+            Margin="10"
+            CanUserAddRows="False"
+            MouseDoubleClick="groupsDataGrid_MouseDoubleClick"
+            AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding Name}"
+                                        Header="Название"/>
+                            <DataGridTextColumn Binding="{Binding CreatedAt}"
+                                        Header="Дата создания"/>
+                            <DataGridTextColumn Binding="{Binding StudentCount}"
+                                        Header="Кол-во студентов"
+                                                IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </ScrollViewer>
+        </GroupBox>
+        <WrapPanel Grid.Row="1" Grid.Column="1" 
+                   HorizontalAlignment="Center" >
+            <TextBlock Text="Название:"/>
+            <TextBox x:Name="groupNameTextBox"
+                     Width="150" 
+                     Margin="5,3"/>
+            <TextBlock Text="Дата создания:"/>
+            <DatePicker x:Name="groupCreatedAtDatePicker" 
+                        Width="170" 
+                        Margin="5,3"/>
+            <Button Content="Создать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Add_NewGroup_Button_Click"/>
+            <Button Content="Удалить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Delete_Group_Button_Click"/>
+            <Button Content="Редактировать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Update_Group_Button_Click"/>
+            <Button Content="Сохранить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Save_Group_Button_Click"/>
+        </WrapPanel>
+
+        <GroupBox Grid.Column="1" Grid.Row="2" Header="Предмет">
+            <DataGrid   
+            x:Name="subjectsDataGrid"
+            CanUserAddRows="False"
+            Margin="10" 
+                AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn 
+                        Binding="{Binding Name}"
+                        Header="Предмет"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+        <WrapPanel Grid.Row="3" Grid.Column="1" 
+                   HorizontalAlignment="Center" >
+            <TextBlock Text="Название:"/>
+            <TextBox x:Name="subjectNameTextBox"
+                     Width="200" 
+                     Margin="5,3"/>
+            <Button Content="Создать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Add_NewSubject_Button_Click"/>
+            <Button Content="Удалить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Delete_Subject_Button_Click"/>
+            <Button Content="Редактировать" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230" 
+                    Click="Update_Subject_Button_Click"/>
+            <Button Content="Сохранить" 
+                    Margin="5" 
+                    Height="30" 
+                    Width="230"
+                    Click="Save_Subject_Button_Click"/>
+        </WrapPanel>
+    </Grid>
+</Window>
