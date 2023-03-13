@@ -3,7 +3,6 @@ using StudentsManager.Entities;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Markup;
 
 namespace StudentsManager
@@ -155,12 +154,14 @@ namespace StudentsManager
                         return;
                     }
                 }
+
                 _student.Name = studentNameTextBox.Text;
                 _student.Birthday = studentBirthdayDatePicker.SelectedDate;
                 _student.Email = studentEmailTextBox.Text;
                 _student.Group = (Group)studentGroupComboBox.SelectedItem;
-                _db.Update(_student);
+
                 await _db.SaveChangesAsync();
+
                 _students.RemoveAt(_studentIndex);
                 _students.Insert(_studentIndex, _student);
                 studentNameTextBox.Clear();
@@ -256,7 +257,6 @@ namespace StudentsManager
                 _visit.Date = (DateTime)visitDatePicker.SelectedDate;
                 _visit.Subject = (Subject)subjectsComboBox.SelectedItem;
 
-                _db.Update(_visit);
                 await _db.SaveChangesAsync();
 
                 _visits.RemoveAt(_visitIndex);
@@ -348,7 +348,7 @@ namespace StudentsManager
                 }
                 _group.Name = groupNameTextBox.Text;
                 _group.CreatedAt = (DateTime)groupCreatedAtDatePicker.SelectedDate;
-                _db.Update(_group);
+
                 await _db.SaveChangesAsync();
 
                 _groups.RemoveAt(_groupIndex);
@@ -423,7 +423,7 @@ namespace StudentsManager
                     }
                 }
                 _subject.Name = subjectNameTextBox.Text;
-                _db.Update(_subject);
+
                 await _db.SaveChangesAsync();
 
                 _subjects.RemoveAt(_subjectIndex);
