@@ -8,6 +8,7 @@
         Title="MainWindow" Height="700" Width="1000" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="0.5*"/>
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
@@ -17,14 +18,16 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-
-        <GroupBox Header="Студенты">
+        <TextBox x:Name="searchTextBox" 
+            Grid.ColumnSpan="2" 
+                 Height="30" Text="Поиск"
+                 TextChanged="TextBox_TextChanged"/>
+        <GroupBox Header="Студенты" Grid.Row="1" Grid.Column="0">
             <ScrollViewer>
                 <StackPanel>
-                    <DataGrid                    
+                    <DataGrid      
             x:Name="studentsDataGrid"
             Margin="10"
-            MouseDoubleClick="studentsDataGrid_MouseDoubleClick"
             CanUserAddRows="False"
             AutoGenerateColumns="False">
                         <DataGrid.Columns>
@@ -45,7 +48,7 @@
                 </StackPanel>
             </ScrollViewer>
         </GroupBox>
-        <WrapPanel Grid.Row="1" Grid.Column="0" 
+        <WrapPanel Grid.Row="2" Grid.Column="0" 
                    HorizontalAlignment="Center" >
             <TextBlock Text="Имя:"/>
             <TextBox x:Name="studentNameTextBox"
@@ -85,7 +88,7 @@
                     Click="Save_Student_Button_Click"/>
         </WrapPanel>
 
-        <GroupBox Header="Посещения" Grid.Row="2" Grid.Column="0">
+        <GroupBox Header="Посещения" Grid.Row="3" Grid.Column="0">
             <ScrollViewer>
                 <StackPanel>
                     <DataGrid 
@@ -106,7 +109,7 @@
                 </StackPanel>
             </ScrollViewer>
         </GroupBox>
-        <WrapPanel Grid.Row="3" Grid.Column="0" 
+        <WrapPanel Grid.Row="4" Grid.Column="0" 
                    HorizontalAlignment="Center" >
             <TextBlock Text="Дата посещения:"/>
             <DatePicker x:Name="visitDatePicker" 
@@ -138,14 +141,13 @@
                     Click="Save_Visit_Button_Click"/>
         </WrapPanel>
 
-        <GroupBox Grid.Row="0" Grid.Column="1" Header="Группы">
+        <GroupBox Grid.Row="1" Grid.Column="1" Header="Группы">
             <ScrollViewer>
                 <StackPanel>
                     <DataGrid 
             x:Name="groupsDataGrid"
             Margin="10"
             CanUserAddRows="False"
-            MouseDoubleClick="groupsDataGrid_MouseDoubleClick"
             AutoGenerateColumns="False">
                         <DataGrid.Columns>
                             <DataGridTextColumn Binding="{Binding Name}"
@@ -160,7 +162,7 @@
                 </StackPanel>
             </ScrollViewer>
         </GroupBox>
-        <WrapPanel Grid.Row="1" Grid.Column="1" 
+        <WrapPanel Grid.Row="2" Grid.Column="1" 
                    HorizontalAlignment="Center" >
             <TextBlock Text="Название:"/>
             <TextBox x:Name="groupNameTextBox"
@@ -192,7 +194,7 @@
                     Click="Save_Group_Button_Click"/>
         </WrapPanel>
 
-        <GroupBox Grid.Column="1" Grid.Row="2" Header="Предмет">
+        <GroupBox Grid.Column="1" Grid.Row="3" Header="Предмет">
             <DataGrid   
             x:Name="subjectsDataGrid"
             CanUserAddRows="False"
@@ -205,7 +207,7 @@
                 </DataGrid.Columns>
             </DataGrid>
         </GroupBox>
-        <WrapPanel Grid.Row="3" Grid.Column="1" 
+        <WrapPanel Grid.Row="4" Grid.Column="1" 
                    HorizontalAlignment="Center" >
             <TextBlock Text="Название:"/>
             <TextBox x:Name="subjectNameTextBox"

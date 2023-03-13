@@ -32,6 +32,8 @@ namespace StudentsManager.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name");
+
                     b.ToTable("Groups");
                 });
 
@@ -58,6 +60,8 @@ namespace StudentsManager.Migrations
 
                     b.HasIndex("GroupId");
 
+                    b.HasIndex("Name");
+
                     b.ToTable("Students");
                 });
 
@@ -72,6 +76,8 @@ namespace StudentsManager.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name");
 
                     b.ToTable("Subjects");
                 });

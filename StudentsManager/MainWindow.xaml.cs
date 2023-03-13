@@ -2,6 +2,8 @@
 using StudentsManager.Entities;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
 
@@ -14,7 +16,6 @@ namespace StudentsManager
         private Visit _visit = new Visit();
         private Group _group = new Group();
         private Subject _subject = new Subject();
-        private int _groupIndex, _visitIndex, _studentIndex, _subjectIndex;
         private ObservableCollection<Student> _students;
         private ObservableCollection<Visit> _visits;
         private ObservableCollection<Group> _groups;
@@ -29,46 +30,8 @@ namespace StudentsManager
         }
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var students = await _db.Students.ToListAsync();
-            _students = new ObservableCollection<Student>(students);
-            studentsDataGrid.ItemsSource = _students;
-
-            var visits = await _db.Visits
-                .Include(visit => visit.Student)
-                .Include(visit => visit.Subject)
-                .ToListAsync();
-            _visits = new ObservableCollection<Visit>(visits);
-            visitsDataGrid.ItemsSource = _visits;
-
-            var groups = await _db.Groups.ToListAsync();
-            _groups = new ObservableCollection<Group>(groups);
-            groupsDataGrid.ItemsSource = _groups;
-
-            var subjects = await _db.Subjects.ToListAsync();
-            _subjects = new ObservableCollection<Subject>(subjects); 
-            subjectsDataGrid.ItemsSource = _subjects;
-
             Language = XmlLanguage.GetLanguage("ru-Ru");
-            studentGroupComboBox.ItemsSource = _groups;
-            subjectsComboBox.ItemsSource = _subjects;
-        }
-        private async void studentsDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            var selectedStudent = (Student)studentsDataGrid.SelectedItem;
-            if (selectedStudent is not null )
-            {
-                await _db.Entry(selectedStudent).Collection(it => it.Visits).LoadAsync(); 
-                visitsDataGrid.ItemsSource = selectedStudent.Visits;
-            }
-        }
-        private async void groupsDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            var selectedGroup = (Group)groupsDataGrid.SelectedItem;
-            if (selectedGroup is not null)
-            {
-                await _db.Entry(selectedGroup).Collection(it => it.Students).LoadAsync();
-                studentsDataGrid.ItemsSource = selectedGroup.Students;
-            }
+            await LoadDefoltData();        
         }
         private async void Add_NewStudent_Button_Click(object sender, RoutedEventArgs e)
         {
@@ -97,6 +60,7 @@ namespace StudentsManager
                 await _db.Students.AddAsync(student);
                 await _db.SaveChangesAsync();
                 _students.Add(student);
+
                 studentNameTextBox.Clear();
                 studentBirthdayDatePicker.Text = null;
                 studentEmailTextBox.Clear();
@@ -116,7 +80,6 @@ namespace StudentsManager
             else
             {
                 _student = (Student)studentsDataGrid.SelectedItem;
-                _studentIndex = studentsDataGrid.SelectedIndex; 
                 studentNameTextBox.Text = _student.Name;
                 studentBirthdayDatePicker.SelectedDate = _student.Birthday;
                 studentEmailTextBox.Text = _student.Email;
@@ -162,8 +125,9 @@ namespace StudentsManager
 
                 await _db.SaveChangesAsync();
 
-                _students.RemoveAt(_studentIndex);
-                _students.Insert(_studentIndex, _student);
+                studentsDataGrid.Items.Refresh();
+                visitsDataGrid.Items.Refresh();
+
                 studentNameTextBox.Clear();
                 studentBirthdayDatePicker.Text = null;
                 studentEmailTextBox.Clear();
@@ -202,6 +166,7 @@ namespace StudentsManager
                 };
                 await _db.Visits.AddAsync(visit);
                 await _db.SaveChangesAsync();
+                studentsDataGrid.Items.Refresh(); 
                 _visits.Add(visit);
                 visitDatePicker.Text = null;
                 subjectsComboBox.SelectedIndex = 0;
@@ -234,7 +199,6 @@ namespace StudentsManager
             else
             {
                 _visit = (Visit)visitsDataGrid.SelectedItem;
-                _visitIndex = visitsDataGrid.SelectedIndex;
                 visitDatePicker.SelectedDate = _visit.Date;
                 subjectsComboBox.SelectedItem = _visit.Subject;
             }
@@ -259,8 +223,8 @@ namespace StudentsManager
 
                 await _db.SaveChangesAsync();
 
-                _visits.RemoveAt(_visitIndex);
-                _visits.Insert(_visitIndex, _visit);
+                visitsDataGrid.Items.Refresh();
+                studentsDataGrid.Items.Refresh(); 
                 visitDatePicker.Text = null;
                 subjectsComboBox.SelectedIndex = 0;
             }
@@ -287,6 +251,7 @@ namespace StudentsManager
                 await _db.Groups.AddAsync(group);
                 await _db.SaveChangesAsync();
                 _groups.Add(group);
+
                 groupNameTextBox.Clear();
                 groupCreatedAtDatePicker.Text = null;
             }
@@ -294,15 +259,6 @@ namespace StudentsManager
             {
                 MessageBox.Show("Заполните все поля!");
             }
-            //var group = new Group()
-            //{
-            //    Id = Guid.NewGuid(),
-            //    Name = "",
-            //    CreatedAt = DateTime.Now
-            //};
-            //await _db.Groups.AddAsync(group);
-            //await _db.SaveChangesAsync();
-            //e.NewItem = group;
         }
         private async void Delete_Group_Button_Click(object sender, RoutedEventArgs e)
         {
@@ -327,7 +283,6 @@ namespace StudentsManager
             else
             {
                 _group = (Group)groupsDataGrid.SelectedItem;
-                _groupIndex = groupsDataGrid.SelectedIndex;
                 groupNameTextBox.Text = _group.Name;
                 groupCreatedAtDatePicker.SelectedDate = _group.CreatedAt;
             }
@@ -351,8 +306,7 @@ namespace StudentsManager
 
                 await _db.SaveChangesAsync();
 
-                _groups.RemoveAt(_groupIndex);
-                _groups.Insert(_groupIndex, _group);
+                groupsDataGrid.Items.Refresh();
                 groupNameTextBox.Clear();
                 groupCreatedAtDatePicker.Text = null;
             }
@@ -406,7 +360,6 @@ namespace StudentsManager
             else
             {
                 _subject = (Subject)subjectsDataGrid.SelectedItem;
-                _subjectIndex = subjectsDataGrid.SelectedIndex;
                 subjectNameTextBox.Text = _subject.Name;
             }
         }
@@ -426,9 +379,88 @@ namespace StudentsManager
 
                 await _db.SaveChangesAsync();
 
-                _subjects.RemoveAt(_subjectIndex);
-                _subjects.Insert(_subjectIndex, _subject);
+                subjectsDataGrid.Items.Refresh();
                 subjectNameTextBox.Clear();
+            }
+        }
+        int _queryVersion = 0;
+        private async void TextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            _queryVersion++;
+            if (searchTextBox.Text == "Поиск") return; 
+            if (string.IsNullOrWhiteSpace(searchTextBox.Text))
+            {
+                await LoadDefoltData();
+                return; 
+            }
+            var textSpanshot = searchTextBox.Text;
+            var savedVersion = _queryVersion; 
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+
+            if (savedVersion == _queryVersion)
+            {
+                MessageBox.Show("Да");
+                await Search(textSpanshot);
+            }       
+        }
+        bool isDefaultData = false; 
+        private async Task LoadDefoltData()
+        {
+            if (isDefaultData) return;
+            isDefaultData = true;
+            var students = await _db.Students.ToListAsync();
+            _students = new ObservableCollection<Student>(students);
+            studentsDataGrid.ItemsSource = _students;
+
+            var visits = await _db.Visits
+                .Include(visit => visit.Student)
+                .Include(visit => visit.Subject)
+                .ToListAsync();
+            _visits = new ObservableCollection<Visit>(visits);
+            visitsDataGrid.ItemsSource = _visits;
+
+            var groups = await _db.Groups.ToListAsync();
+            _groups = new ObservableCollection<Group>(groups);
+            groupsDataGrid.ItemsSource = _groups;
+
+            var subjects = await _db.Subjects.ToListAsync();
+            _subjects = new ObservableCollection<Subject>(subjects);
+            subjectsDataGrid.ItemsSource = _subjects;
+
+
+            studentGroupComboBox.ItemsSource = _groups;
+            subjectsComboBox.ItemsSource = _subjects;
+        }      
+        public async Task Search(string textSpanshot)
+        {
+            var matchesStudents = await _db.Students
+              .Where(s => s.Name.Contains(textSpanshot) || s.Group!.Name.Contains(textSpanshot))
+              .ToListAsync();
+            if (studentsDataGrid is not null)
+            {
+                studentsDataGrid.ItemsSource = matchesStudents;
+            }
+            var matchesVisits = await _db.Visits
+                .Where(v => v.Student!.Name.Contains(textSpanshot) || v.Subject!.Name.Contains(textSpanshot))
+                .ToListAsync();
+            if (visitsDataGrid is not null)
+            {
+                visitsDataGrid.ItemsSource = matchesVisits;
+            }
+            var matchesGroups = await _db.Groups
+                .Where(g => g.Name.Contains(textSpanshot) || g.Students!.Any(student => student.Name.Contains(textSpanshot)))
+                .ToListAsync();
+
+            if (groupsDataGrid is not null)
+            {
+                groupsDataGrid.ItemsSource = matchesGroups;
+            }
+            var matchesSubjects = await _db.Subjects
+                .Where(s => s.Name.Contains(textSpanshot))
+                .ToListAsync();
+            if (subjectsDataGrid is not null)
+            {
+                subjectsDataGrid.ItemsSource = matchesSubjects;
             }
         }
     }

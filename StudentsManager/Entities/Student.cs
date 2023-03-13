@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 
 namespace StudentsManager.Entities
 {
+    [Index(nameof(Name))]
     public class Student
     {
         public Guid Id { get; set; }

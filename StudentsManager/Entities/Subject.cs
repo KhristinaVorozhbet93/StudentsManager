@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace StudentsManager.Entities
 {
+    [Index(nameof(Name))]
     public class Subject
     {
         public Guid Id { get; set; }
