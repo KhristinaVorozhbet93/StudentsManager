@@ -46,14 +46,14 @@ namespace StudentsManager.Migrations
                     b.Property<DateTime?>("Birthday")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Email")
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Passport")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -111,6 +111,26 @@ namespace StudentsManager.Migrations
                     b.HasOne("StudentsManager.Entities.Group", "Group")
                         .WithMany("Students")
                         .HasForeignKey("GroupId");
+
+                    b.OwnsOne("StudentsManager.Email", "Email", b1 =>
+                        {
+                            b1.Property<Guid>("StudentId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Email");
+
+                            b1.HasKey("StudentId");
+
+                            b1.ToTable("Students");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StudentId");
+                        });
+
+                    b.Navigation("Email");
 
                     b.Navigation("Group");
                 });

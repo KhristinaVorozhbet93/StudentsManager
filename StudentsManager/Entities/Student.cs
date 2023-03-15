@@ -10,9 +10,10 @@ namespace StudentsManager.Entities
         public Guid Id { get; set; }
         public string Name { get; set; }
         public DateTime? Birthday { get; set; }
-        public string? Email { get; set; }
+        public Email? Email { get; set; }
         public List<Visit>? Visits { get; set; }
         public Group? Group { get; set; }
+        public Passport? Passport { get; set; }
 
         public int? VisitsCount => Visits.Count;  
         public override string ToString()

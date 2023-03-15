@@ -31,32 +31,42 @@ namespace StudentsManager
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Language = XmlLanguage.GetLanguage("ru-Ru");
-            await LoadDefoltData();        
+            await LoadDefoltData();
         }
         private async void Add_NewStudent_Button_Click(object sender, RoutedEventArgs e)
         {
-            if (studentNameTextBox.Text is not null 
+            if (studentNameTextBox.Text is not null
                 && studentBirthdayDatePicker.SelectedDate is not null
-                && studentEmailTextBox.Text is not null)
+                && studentEmailTextBox.Text is not null
+                && studentPassportTextBox.Text is not null
+                && studentPassportTextBox.Text is not null)
             {
                 for (int i = 0; i < _students.Count; i++)
                 {
-                    if (studentNameTextBox.Text == _students[i].Name &&
-                        studentBirthdayDatePicker.SelectedDate == _students[i].Birthday
-                        && studentGroupComboBox.SelectedItem == _students[i].Group)
+                    if (studentPassportTextBox.Text == _students[i].Passport.ToString())
                     {
-                        MessageBox.Show("Студент с такими данными уже существует!");
+                        MessageBox.Show("Студент с такими паспортными данными уже существует!");
                         return;
                     }
                 }
-
-                var student = new Student()
+                Student student = new Student(); 
+                try
                 {
-                    Name = studentNameTextBox.Text,
-                    Birthday = studentBirthdayDatePicker.SelectedDate,
-                    Email = studentEmailTextBox.Text,
-                    Group = (Group)studentGroupComboBox.SelectedItem
-                };
+                    student = new Student()
+                    {
+                        Name = studentNameTextBox.Text,
+                        Birthday = studentBirthdayDatePicker.SelectedDate,
+                        Email = new Email(studentEmailTextBox.Text),
+                        Group = (Group)studentGroupComboBox.SelectedItem,
+                        Passport = new Passport(studentPassportTextBox.Text)
+                    };
+                }
+                catch (ArgumentException exp)
+                {
+                    MessageBox.Show(exp.Message);
+                    return; 
+                }
+                
                 await _db.Students.AddAsync(student);
                 await _db.SaveChangesAsync();
                 _students.Add(student);
@@ -64,6 +74,7 @@ namespace StudentsManager
                 studentNameTextBox.Clear();
                 studentBirthdayDatePicker.Text = null;
                 studentEmailTextBox.Clear();
+                studentPassportTextBox.Clear(); 
                 studentGroupComboBox.SelectedIndex = 0;
             }
             else
@@ -82,7 +93,8 @@ namespace StudentsManager
                 _student = (Student)studentsDataGrid.SelectedItem;
                 studentNameTextBox.Text = _student.Name;
                 studentBirthdayDatePicker.SelectedDate = _student.Birthday;
-                studentEmailTextBox.Text = _student.Email;
+                studentEmailTextBox.Text = _student.Email.ToString();
+                studentPassportTextBox.Text = _student.Passport.ToString(); 
                 studentGroupComboBox.SelectedItem = _student.Group;
             }
         }
@@ -102,26 +114,26 @@ namespace StudentsManager
         }
         private async void Save_Student_Button_Click(object sender, RoutedEventArgs e)
         {
-            if (studentNameTextBox.Text is not null 
+            if (studentNameTextBox.Text is not null
                 && studentBirthdayDatePicker.SelectedDate is not null
-                && studentEmailTextBox.Text is not null 
-                && studentGroupComboBox.SelectedItem is not null)
+                && studentEmailTextBox.Text is not null
+                && studentGroupComboBox.SelectedItem is not null
+                && studentPassportTextBox.Text is not null)
             {
                 for (int i = 0; i < _students.Count; i++)
                 {
-                    if (studentNameTextBox.Text == _students[i].Name &&
-                        studentBirthdayDatePicker.SelectedDate == _students[i].Birthday
-                        && studentGroupComboBox.SelectedItem == _students[i].Group)
+                    if (studentPassportTextBox.Text == _students[i].Passport.ToString())
                     {
-                        MessageBox.Show("Студент с такими данными уже существует!");
+                        MessageBox.Show("Студент с такими паспортными данными уже существует!");
                         return;
                     }
                 }
 
-                _student.Name = studentNameTextBox.Text;
-                _student.Birthday = studentBirthdayDatePicker.SelectedDate;
-                _student.Email = studentEmailTextBox.Text;
-                _student.Group = (Group)studentGroupComboBox.SelectedItem;
+                    _student.Name = studentNameTextBox.Text;
+                    _student.Birthday = studentBirthdayDatePicker.SelectedDate;
+                    _student.Email = new Email(studentEmailTextBox.Text);
+                    _student.Passport = new Passport(studentPassportTextBox.Text);
+                    _student.Group = (Group)studentGroupComboBox.SelectedItem;
 
                 await _db.SaveChangesAsync();
 
@@ -131,6 +143,7 @@ namespace StudentsManager
                 studentNameTextBox.Clear();
                 studentBirthdayDatePicker.Text = null;
                 studentEmailTextBox.Clear();
+                studentPassportTextBox.Clear(); 
                 studentGroupComboBox.SelectedIndex = 0;
             }
             else
@@ -150,7 +163,7 @@ namespace StudentsManager
             {
                 for (int i = 0; i < _visits.Count; i++)
                 {
-                    if (visitDatePicker.SelectedDate == _visits[i].Date 
+                    if (visitDatePicker.SelectedDate == _visits[i].Date
                         && studentsDataGrid.SelectedItem == _visits[i].Student
                         && subjectsComboBox.SelectedItem == _visits[i].Subject)
                     {
@@ -166,7 +179,7 @@ namespace StudentsManager
                 };
                 await _db.Visits.AddAsync(visit);
                 await _db.SaveChangesAsync();
-                studentsDataGrid.Items.Refresh(); 
+                studentsDataGrid.Items.Refresh();
                 _visits.Add(visit);
                 visitDatePicker.Text = null;
                 subjectsComboBox.SelectedIndex = 0;
@@ -224,7 +237,7 @@ namespace StudentsManager
                 await _db.SaveChangesAsync();
 
                 visitsDataGrid.Items.Refresh();
-                studentsDataGrid.Items.Refresh(); 
+                studentsDataGrid.Items.Refresh();
                 visitDatePicker.Text = null;
                 subjectsComboBox.SelectedIndex = 0;
             }
@@ -383,27 +396,19 @@ namespace StudentsManager
                 subjectNameTextBox.Clear();
             }
         }
-        int _queryVersion = 0;
+
+        DebounceService debounce = new DebounceService(); 
         private async void TextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            _queryVersion++;
-            if (searchTextBox.Text == "Поиск") return; 
+            if (searchTextBox.Text == "Поиск") return;
             if (string.IsNullOrWhiteSpace(searchTextBox.Text))
             {
                 await LoadDefoltData();
-                return; 
+                return;
             }
-            var textSpanshot = searchTextBox.Text;
-            var savedVersion = _queryVersion; 
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
-
-            if (savedVersion == _queryVersion)
-            {
-                MessageBox.Show("Да");
-                await Search(textSpanshot);
-            }       
+            await debounce.Debounce(TimeSpan.FromSeconds(1), Search, searchTextBox.Text);
         }
-        bool isDefaultData = false; 
+        bool isDefaultData = false;
         private async Task LoadDefoltData()
         {
             if (isDefaultData) return;
@@ -430,38 +435,32 @@ namespace StudentsManager
 
             studentGroupComboBox.ItemsSource = _groups;
             subjectsComboBox.ItemsSource = _subjects;
-        }      
+        }
         public async Task Search(string textSpanshot)
         {
             var matchesStudents = await _db.Students
               .Where(s => s.Name.Contains(textSpanshot) || s.Group!.Name.Contains(textSpanshot))
               .ToListAsync();
-            if (studentsDataGrid is not null)
-            {
-                studentsDataGrid.ItemsSource = matchesStudents;
-            }
+            studentsDataGrid.ItemsSource = matchesStudents;
+
             var matchesVisits = await _db.Visits
                 .Where(v => v.Student!.Name.Contains(textSpanshot) || v.Subject!.Name.Contains(textSpanshot))
                 .ToListAsync();
-            if (visitsDataGrid is not null)
-            {
-                visitsDataGrid.ItemsSource = matchesVisits;
-            }
+
+            visitsDataGrid.ItemsSource = matchesVisits;
+
             var matchesGroups = await _db.Groups
                 .Where(g => g.Name.Contains(textSpanshot) || g.Students!.Any(student => student.Name.Contains(textSpanshot)))
                 .ToListAsync();
 
-            if (groupsDataGrid is not null)
-            {
-                groupsDataGrid.ItemsSource = matchesGroups;
-            }
+            groupsDataGrid.ItemsSource = matchesGroups;
+
             var matchesSubjects = await _db.Subjects
                 .Where(s => s.Name.Contains(textSpanshot))
                 .ToListAsync();
-            if (subjectsDataGrid is not null)
-            {
-                subjectsDataGrid.ItemsSource = matchesSubjects;
-            }
+
+            subjectsDataGrid.ItemsSource = matchesSubjects;
+
         }
     }
 }
