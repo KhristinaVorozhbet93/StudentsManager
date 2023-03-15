@@ -20,6 +20,5 @@ namespace StudentsManager.Entities
         {
             return Name;
         }
-
     }
 }
