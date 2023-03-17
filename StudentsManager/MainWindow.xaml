@@ -8,7 +8,7 @@
         Title="MainWindow" Height="900" Width="1200" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.5*"/>
+            <RowDefinition Height="0.2*"/>
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
@@ -18,12 +18,15 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <TextBox x:Name="searchTextBox" 
-            Grid.ColumnSpan="2" 
-                 Height="30" Text="Поиск"
+        <WrapPanel Grid.ColumnSpan="2">
+            <TextBlock Text="Поиск:" Margin="5"/>
+            <TextBox x:Name="searchTextBox" 
+                 Height="20" 
+                 Width="1000" 
                  TextChanged="TextBox_TextChanged"/>
+        </WrapPanel>
         <GroupBox Header="Студенты" Grid.Row="1" Grid.Column="0">
-            <ScrollViewer>
+            <ScrollViewer x:Name="studentsScrollViewer">
                 <StackPanel>
                     <DataGrid      
             x:Name="studentsDataGrid"
@@ -52,45 +55,56 @@
         </GroupBox>
         <WrapPanel Grid.Row="2" Grid.Column="0" 
                    HorizontalAlignment="Center" >
+            <Button x:Name="prevStudentsPageButton" 
+                    Content="Предыдущая страница" 
+                    Width="285" 
+                    Margin="5"
+                    Click="ButtonPrevStudentsPage_Click"/>
+            <Button x:Name="nextStudentsPageButton" 
+                    Content="Следующая страница" 
+                    Width="285" 
+                    Margin="5"
+                    Click="ButtonNextStudentsPage_Click"/>
             <TextBlock Text="Имя:"/>
             <TextBox x:Name="studentNameTextBox"
-                     Width="170" 
+                     Width="220" 
                      Margin="5,3"/>
             <TextBlock Text="Дата рождения:"/>
             <DatePicker x:Name="studentBirthdayDatePicker" 
-                        Width="170" 
+                        Width="220" 
                         Margin="5,3"/>
             <TextBlock Text="E-mail:"/>
             <TextBox x:Name="studentEmailTextBox" 
                      Margin="5,3" 
-                     Width="130"/>
+                     Width="140"/>
             <TextBlock Text="Passport:"/>
             <TextBox x:Name="studentPassportTextBox" 
                      Margin="5,3" 
-                     Width="130"/>
+                     Width="140"/>
             <TextBlock Text="Группа:"/>
             <ComboBox x:Name="studentGroupComboBox"
                       SelectedIndex="0" 
-                      Margin="5,5"/>
+                      Margin="5,5"
+                      Width="140"/>
             <Button Content="Создать" 
                     Margin="5" 
                     Height="30" 
-                    Width="230" 
+                    Width="280" 
                     Click="Add_NewStudent_Button_Click"/>
             <Button Content="Удалить" 
                     Margin="5" 
                     Height="30" 
-                    Width="230"
+                    Width="280"
                     Click="Delete_Student_Button_Click"/>
             <Button Content="Редактировать" 
                     Margin="5" 
                     Height="30" 
-                    Width="230" 
+                    Width="280" 
                     Click="Update_Student_Button_Click"/>
             <Button Content="Сохранить" 
                     Margin="5" 
                     Height="30" 
-                    Width="230"
+                    Width="280"
                     Click="Save_Student_Button_Click"/>
         </WrapPanel>
 

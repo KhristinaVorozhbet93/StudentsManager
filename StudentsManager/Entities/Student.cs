@@ -15,7 +15,7 @@ namespace StudentsManager.Entities
         public Group? Group { get; set; }
         public Passport? Passport { get; set; }
 
-        public int? VisitsCount => Visits.Count;  
+        //public int? VisitsCount => Visits.Count;  
         public override string ToString()
         {
             return Name;

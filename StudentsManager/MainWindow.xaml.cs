@@ -20,6 +20,8 @@ namespace StudentsManager
         private ObservableCollection<Visit> _visits;
         private ObservableCollection<Group> _groups;
         private ObservableCollection<Subject> _subjects;
+        const int StudentsPerPage = 100;
+        Random random = new Random();
         public MainWindow()
         {
             InitializeComponent();
@@ -32,6 +34,16 @@ namespace StudentsManager
         {
             Language = XmlLanguage.GetLanguage("ru-Ru");
             await LoadDefoltData();
+
+            //await _db.Students.AddRangeAsync(Enumerable.Range(1, 1000).Select(number => new Student()
+            //{
+            //    Group = _groups[0],
+            //    Name = $"Student{number}",
+            //    Email = new Email("sdfhs@mail.ru"),
+            //    Passport = new Passport(random.Next(1000000000, 2000000000).ToString())
+            //}));
+            //await _db.SaveChangesAsync();
+
         }
         private async void Add_NewStudent_Button_Click(object sender, RoutedEventArgs e)
         {
@@ -49,7 +61,7 @@ namespace StudentsManager
                         return;
                     }
                 }
-                Student student = new Student(); 
+                Student student = new Student();
                 try
                 {
                     student = new Student()
@@ -64,9 +76,9 @@ namespace StudentsManager
                 catch (ArgumentException exp)
                 {
                     MessageBox.Show(exp.Message);
-                    return; 
+                    return;
                 }
-                
+
                 await _db.Students.AddAsync(student);
                 await _db.SaveChangesAsync();
                 _students.Add(student);
@@ -74,7 +86,7 @@ namespace StudentsManager
                 studentNameTextBox.Clear();
                 studentBirthdayDatePicker.Text = null;
                 studentEmailTextBox.Clear();
-                studentPassportTextBox.Clear(); 
+                studentPassportTextBox.Clear();
                 studentGroupComboBox.SelectedIndex = 0;
             }
             else
@@ -94,7 +106,7 @@ namespace StudentsManager
                 studentNameTextBox.Text = _student.Name;
                 studentBirthdayDatePicker.SelectedDate = _student.Birthday;
                 studentEmailTextBox.Text = _student.Email.ToString();
-                studentPassportTextBox.Text = _student.Passport.ToString(); 
+                studentPassportTextBox.Text = _student.Passport.ToString();
                 studentGroupComboBox.SelectedItem = _student.Group;
             }
         }
@@ -129,11 +141,11 @@ namespace StudentsManager
                     }
                 }
 
-                    _student.Name = studentNameTextBox.Text;
-                    _student.Birthday = studentBirthdayDatePicker.SelectedDate;
-                    _student.Email = new Email(studentEmailTextBox.Text);
-                    _student.Passport = new Passport(studentPassportTextBox.Text);
-                    _student.Group = (Group)studentGroupComboBox.SelectedItem;
+                _student.Name = studentNameTextBox.Text;
+                _student.Birthday = studentBirthdayDatePicker.SelectedDate;
+                _student.Email = new Email(studentEmailTextBox.Text);
+                _student.Passport = new Passport(studentPassportTextBox.Text);
+                _student.Group = (Group)studentGroupComboBox.SelectedItem;
 
                 await _db.SaveChangesAsync();
 
@@ -143,7 +155,7 @@ namespace StudentsManager
                 studentNameTextBox.Clear();
                 studentBirthdayDatePicker.Text = null;
                 studentEmailTextBox.Clear();
-                studentPassportTextBox.Clear(); 
+                studentPassportTextBox.Clear();
                 studentGroupComboBox.SelectedIndex = 0;
             }
             else
@@ -397,25 +409,28 @@ namespace StudentsManager
             }
         }
 
-        DebounceService debounce = new DebounceService(); 
+        DebounceService debounce = new DebounceService();
+        bool isDefaultData = false;
+
         private async void TextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (searchTextBox.Text == "Поиск") return;
+            _studentsPageIndex = 0;
+            studentsScrollViewer.ScrollToHome(); 
             if (string.IsNullOrWhiteSpace(searchTextBox.Text))
             {
-                await LoadDefoltData();
+                await LoadDefoltData();              
                 return;
             }
             await debounce.Debounce(TimeSpan.FromSeconds(1), Search, searchTextBox.Text);
+            isDefaultData = false;
         }
-        bool isDefaultData = false;
+       
+   
         private async Task LoadDefoltData()
         {
             if (isDefaultData) return;
             isDefaultData = true;
-            var students = await _db.Students.ToListAsync();
-            _students = new ObservableCollection<Student>(students);
-            studentsDataGrid.ItemsSource = _students;
+            await LoadStudents();
 
             var visits = await _db.Visits
                 .Include(visit => visit.Student)
@@ -432,16 +447,55 @@ namespace StudentsManager
             _subjects = new ObservableCollection<Subject>(subjects);
             subjectsDataGrid.ItemsSource = _subjects;
 
-
             studentGroupComboBox.ItemsSource = _groups;
             subjectsComboBox.ItemsSource = _subjects;
         }
+
+        int _studentsPageIndex = 0;
+        int _studentsCount = 0;
+        private async Task LoadStudents()
+        {       
+            _studentsCount = await _db.Students.CountAsync();
+            var students = await _db.Students
+                .OrderBy(it => it.Name)
+                    .ThenBy(it => it.Birthday)
+                .Skip(_studentsPageIndex * StudentsPerPage)
+                .Take(StudentsPerPage)
+                .ToListAsync();
+            _students = new ObservableCollection<Student>(students);
+            studentsDataGrid.ItemsSource = _students;
+
+            prevStudentsPageButton.IsEnabled = _studentsPageIndex > 0;
+
+            var pageCount = Math.Ceiling((double)_studentsCount / StudentsPerPage);
+            var lastPageIndex = pageCount - 1;
+            nextStudentsPageButton.IsEnabled = _studentsPageIndex < lastPageIndex;
+        }
+
+        private async Task LoadStudents(string text)
+        {                 
+            var matchesStudents = _db.Students
+                .AsQueryable()
+                .OrderBy(s => s.Name)
+                .Where(s => s.Name.Contains(text) || s.Group!.Name.Contains(text));
+            var students = await matchesStudents
+                .Skip(_studentsPageIndex * StudentsPerPage)
+                .Take(StudentsPerPage)
+                .ToListAsync();
+            _students = new ObservableCollection<Student>(students);
+            studentsDataGrid.ItemsSource = _students;
+
+            _studentsCount = await matchesStudents.CountAsync();
+            prevStudentsPageButton.IsEnabled = _studentsPageIndex > 0;
+
+            var pageCount = Math.Ceiling((double)_studentsCount / StudentsPerPage);
+            var lastPageIndex = pageCount - 1;
+            nextStudentsPageButton.IsEnabled = _studentsPageIndex < lastPageIndex;
+  
+        }
         public async Task Search(string textSpanshot)
         {
-            var matchesStudents = await _db.Students
-              .Where(s => s.Name.Contains(textSpanshot) || s.Group!.Name.Contains(textSpanshot))
-              .ToListAsync();
-            studentsDataGrid.ItemsSource = matchesStudents;
+            await LoadStudents(textSpanshot);
 
             var matchesVisits = await _db.Visits
                 .Where(v => v.Student!.Name.Contains(textSpanshot) || v.Subject!.Name.Contains(textSpanshot))
@@ -460,7 +514,34 @@ namespace StudentsManager
                 .ToListAsync();
 
             subjectsDataGrid.ItemsSource = matchesSubjects;
+      
+        }
 
+        private async void ButtonPrevStudentsPage_Click(object sender, RoutedEventArgs e)
+        {
+            _studentsPageIndex--;
+            studentsScrollViewer.ScrollToHome();
+            if (string.IsNullOrWhiteSpace(searchTextBox.Text))
+            {
+                await LoadStudents();
+            }
+            else
+            {
+                await LoadStudents(searchTextBox.Text);
+            }
+        }
+        private async void ButtonNextStudentsPage_Click(object sender, RoutedEventArgs e)
+        {
+            _studentsPageIndex++;
+            studentsScrollViewer.ScrollToHome();
+            if (string.IsNullOrWhiteSpace(searchTextBox.Text))
+            {
+                await LoadStudents();
+            }
+            else
+            {
+                await LoadStudents(searchTextBox.Text);
+            }
         }
     }
 }
